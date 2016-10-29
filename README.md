@@ -1,5 +1,5 @@
 # Fast-Resizer
-A reasonably fast job-threaded jpeg resizer script for PowerShell.
+A reasonably fast (~33ms per image) job-threaded jpeg resizer script for PowerShell.
 
 ## What it does
 
