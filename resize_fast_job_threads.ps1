@@ -184,7 +184,7 @@ Function Get-FileName($initialDirectory)
     $fsd = New-Object FolderSelect.FolderSelectDialog
     $fsd.Title = "Select the job folder that you want resized";
     $fsd.InitialDirectory = $initialDirectory
-    $fsd.ShowDialog() | Out-Null
+    $null = $fsd.ShowDialog()
     return $fsd.FileName
 }
 
@@ -212,7 +212,17 @@ function MakePreviewImages
     $canvasTargetSize = 3000.0
 
     if(($bmp.Width) -le $canvasTargetSize) {if(($bmp.Height) -le $canvasTargetSize) {return $True}}
- 
+
+    #backup the original before doing anything
+    #$imgitem = Get-Item $imageSource
+    #$backupName = ($imgitem.DirectoryName + "\original\" + $imgitem.Name)
+    #if((Test-Path($backupName)) -eq $False ) {
+    #    Copy-Item $imgitem.FullName $backupName
+    #}
+
+    #We generate a quick and dirty hash to avoid name collisions in case there is already an image named "$file_resized"
+    $hash = (Get-Random -minimum 100000 -maximum 999999)
+
     #Encoder parameter for image quality
     $myEncoder = [System.Drawing.Imaging.Encoder]::Quality
     $encoderParams = New-Object System.Drawing.Imaging.EncoderParameters(1)
@@ -244,7 +254,8 @@ function MakePreviewImages
     return $False
 }
 
-
+    #We generate a quick and dirty hash to avoid name collisions in case there is already an image named "$file_resized"
+    $hash = (Get-Random -minimum 100000 -maximum 999999)
     $iteration = 0
     $filelist | Foreach-Object{
         $iteration++
@@ -253,8 +264,7 @@ function MakePreviewImages
         if((Test-Path($backupName)) -eq $False ) {
             Copy-Item $_.FullName $backupName
         }
-        #We generate a quick and dirty hash to avoid name collisions in case there is already an image named "$file_resized"
-        $hash = (Get-Random -minimum 100000 -maximum 999999)
+        
         $newName = $_.FullName.Substring(0, $_.FullName.Length - 4) + "_resized_" + $hash + ".jpg"
         $originalName = $_.FullName
         $er = MakePreviewImages $_.FullName $newName 100
@@ -299,7 +309,7 @@ $originalFolder = (($inputfolder) + "\original")
 
 
 if((Test-Path $originalFolder) -eq $false) {
-    New-Item $originalFolder -type directory -Force | Out-Null
+    $null = New-Item $originalFolder -type directory -Force
 }
 
 $filelist = Get-ChildItem ($inputfolder + '\*') -Include *.jpg, *.jpeg
@@ -311,7 +321,7 @@ if($filelist -eq $null) {
 if($filelist -isnot [array])
 {
     Write-Host "Single File Selected: $filelist"
-    Start-Job $ScriptBlock -arg $filelist | Out-Null
+    $null = Start-Job $ScriptBlock -arg $filelist
 }
 else
 {
@@ -322,11 +332,11 @@ else
     $a = New-Object System.Collections.ArrayList
     if($baseamount -eq 1) 
     {
-        $a.Add($filelist[0]) > $null
+        $null = $a.Add($filelist[0])
     }
     else 
     {
-        $a.Add($filelist[0..$baseamount]) > $null
+        $null = $a.Add($filelist[0..$baseamount])
     }
     for($i = 1; (($i) -lt $numberOfBuckets); $i++)
     {
@@ -334,11 +344,11 @@ else
         {
             if($i -eq ($numberOfBuckets-1))
             {
-                $a.Add($filelist[$i..($totalNumberofImages-1)]) > $null
+                $null = $a.Add($filelist[$i..($totalNumberofImages-1)])
             }
             else
             {
-                $a.Add($filelist[$i]) > $null
+                $null = $a.Add($filelist[$i])
             }
             
         }
@@ -350,7 +360,7 @@ else
             {
                 $end = $totalNumberofImages-1
             }
-            $a.Add($filelist[$start..$end]) > $null
+            $null = $a.Add($filelist[$start..$end])
         }
 
     }
@@ -362,7 +372,7 @@ else
 
     ForEach ($List in $a)
     {
-        Start-Job $ScriptBlock -arg (,$List) | Out-Null
+        $null = Start-Job $ScriptBlock -arg (,$List)
     }
 
 }
